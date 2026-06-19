@@ -1,0 +1,270 @@
+:root {
+  color: #172033;
+  background: #f4f6f9;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  background: #1f6feb;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+}
+
+button:disabled {
+  background: #9fb3d1;
+  cursor: not-allowed;
+}
+
+button.danger {
+  background: #c62828;
+}
+
+a {
+  color: #1f6feb;
+  font-weight: 700;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 1rem;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.setup {
+  place-items: center;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #d9e2ef;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+  padding: 1rem;
+}
+
+.hero {
+  max-width: 560px;
+  text-align: center;
+}
+
+.hero h1,
+.packet-header h1 {
+  margin-top: 0;
+}
+
+.field-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.actions .field-row,
+.export-panel .field-row,
+.iphone-panel .field-row {
+  align-items: center;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+label.checkbox {
+  align-items: center;
+  flex-direction: row;
+  font-weight: 500;
+}
+
+input,
+textarea,
+select {
+  border: 1px solid #b9c5d6;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.hint,
+.muted {
+  color: #607089;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.receipt-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.receipt-list li {
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem;
+}
+
+.receipt-list li.selected {
+  border-color: #1f6feb;
+  background: #eef5ff;
+}
+
+.badge {
+  align-self: flex-start;
+  background: #e8f5e9;
+  border-radius: 999px;
+  color: #1b5e20;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+}
+
+.badge.warning {
+  background: #fff8e1;
+  color: #8a6100;
+}
+
+.receipt-preview {
+  background: #101827;
+  border-radius: 16px;
+  min-height: 520px;
+  overflow: hidden;
+}
+
+.receipt-preview img {
+  display: block;
+  max-height: 720px;
+  max-width: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.receipt-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.receipt-editor h2,
+.export-panel h2,
+.iphone-panel h2 {
+  margin-top: 0;
+}
+
+.validation-box {
+  background: #fff8e1;
+  border: 1px solid #ffd54f;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+}
+
+.validation-box ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.validation-box li.error {
+  color: #b00020;
+  font-weight: 700;
+}
+
+.validation-box li.warning {
+  color: #8a6100;
+}
+
+.toast {
+  background: #101827;
+  border-radius: 12px;
+  bottom: 1rem;
+  color: white;
+  left: 50%;
+  padding: 0.8rem 1rem;
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.empty-state {
+  display: grid;
+  min-height: 520px;
+  place-items: center;
+  text-align: center;
+}
+
+code {
+  background: #edf2f7;
+  border-radius: 6px;
+  padding: 0.1rem 0.3rem;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: 2;
+  }
+
+  .workspace {
+    order: 1;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .receipt-preview {
+    min-height: 360px;
+  }
+}

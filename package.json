@@ -1,0 +1,34 @@
+{
+  "name": "wcb-receipt-builder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first Mac-hosted WCB receipt packet builder with iPhone web companion.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"pnpm --filter @wcb/server dev\" \"pnpm --filter @wcb/web dev\"",
+    "dev:server": "pnpm --filter @wcb/server dev",
+    "dev:web": "pnpm --filter @wcb/web dev",
+    "build": "pnpm -r build",
+    "build:web": "pnpm --filter @wcb/web build",
+    "build:server": "pnpm --filter @wcb/server build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r exec rm -rf dist node_modules .tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
