@@ -1,9 +1,8 @@
 /**
  * iPhone access status.
  *
- * Runtime rebind from 127.0.0.1 to 0.0.0.0 is intentionally handled by the
- * Mac shell/Tauri phase. This module provides the contract and local status
- * shown in the web UI.
+ * Runtime rebind from 127.0.0.1 to 0.0.0.0 is handled by ServerRuntime.
+ * This module provides the contract and local status shown in the web UI.
  */
 
 export interface IPhoneAccessStatus {
@@ -26,6 +25,9 @@ export function buildIphoneAccessStatus(
 ): IPhoneAccessStatus {
   const displayHost = host === "0.0.0.0" ? `${hostnameSafe()}${port === 8787 ? "" : `:${port}`}` : `localhost:${port}`;
   const url = `http://${displayHost}`;
+  const message = enabled
+    ? "iPhone access is enabled. Only devices on your Wi-Fi can connect."
+    : "iPhone access is off. The app is available on this Mac only.";
   return {
     enabled,
     host: displayHost,
@@ -33,9 +35,7 @@ export function buildIphoneAccessStatus(
     accessCode,
     expiresAt,
     ttlSeconds,
-    message: enabled
-      ? "iPhone access is enabled. Only devices on your Wi-Fi can connect."
-      : "iPhone access is off. The app is available on this Mac only.",
+    message,
   };
 }
 

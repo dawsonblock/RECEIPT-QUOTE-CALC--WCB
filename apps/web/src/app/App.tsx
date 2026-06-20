@@ -128,7 +128,12 @@ export function App() {
         <PacketHeader packet={packet} onChange={handlePatchPacket} />
         <section className="panel actions">
           <h2>Receipts</h2>
-          <ReceiptUploadButton packetId={packet.id} onUploaded={(receipt) => setSelectedReceiptId(receipt.id)} disabled={busy} />
+          <ReceiptUploadButton
+            packetId={packet.id}
+            onUploaded={(receipt) => setSelectedReceiptId(receipt.id)}
+            onMessage={(message) => setMessage(message)}
+            disabled={busy}
+          />
           <button type="button" onClick={() => handleNewPacket()} disabled={busy}>
             New Packet
           </button>

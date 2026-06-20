@@ -7,6 +7,8 @@ From the repository root:
 ```bash
 pnpm typecheck
 pnpm build
+pnpm test
+cd src-tauri && cargo check
 ```
 
 Or per package:
@@ -16,7 +18,36 @@ pnpm --filter @wcb/server typecheck
 pnpm --filter @wcb/web typecheck
 pnpm --filter @wcb/server build
 pnpm --filter @wcb/web build
+pnpm --filter @wcb/server test
 ```
+
+## Tauri Mac shell
+
+Install system prerequisites if needed:
+
+```bash
+xcode-select --install
+```
+
+Run the Mac shell in development:
+
+```bash
+pnpm tauri:dev
+```
+
+Build a distributable Mac app bundle:
+
+```bash
+pnpm tauri:build
+```
+
+Tauri writes bundles/installers under:
+
+```text
+src-tauri/target/release/bundle/
+```
+
+The current icon at `src-tauri/icons/icon.png` is a minimal placeholder; replace it with real Tauri icon assets before a release build.
 
 ## Smoke test the receipt-to-PDF flow
 
@@ -106,7 +137,7 @@ curl -sS -X PUT http://127.0.0.1:8787/api/receipts/<receipt-id> \
     "vendor":"Test Vendor",
     "purchaseDate":"2026-06-19",
     "amount":"25.00",
-    "category":"medical",
+    "category":"medication",
     "reason":"Test receipt for smoke validation.",
     "notes":""
   }'

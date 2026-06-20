@@ -9,7 +9,6 @@ export async function uploadReceipt(file: File, packetId: string): Promise<Recei
   return apiRequest(apiPath("/receipts"), {
     method: "POST",
     body: form,
-    headers: {},
   });
 }
 

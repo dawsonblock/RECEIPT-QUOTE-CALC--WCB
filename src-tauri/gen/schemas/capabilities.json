@@ -1,0 +1,1 @@
+{"main-capability":{"identifier":"main-capability","description":"Capability for the main WCB Receipt Builder window.","local":true,"windows":["main"],"permissions":["core:default"]}}

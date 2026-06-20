@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "vite --host localhost",
     "build": "vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.8.1",
     "@vitejs/plugin-react": "^4.3.4",
     "@wcb/shared": "workspace:*",
     "vite": "^6.0.7",

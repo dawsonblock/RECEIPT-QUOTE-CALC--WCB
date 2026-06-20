@@ -1,0 +1,31 @@
+[package]
+name = "wcb-receipt-builder"
+version = "0.1.0"
+description = "Local-first Mac-hosted WCB receipt packet builder"
+authors = ["Dawson Block"]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/dawsonblock/RECEIPT-QUOTE-CALC--WCB"
+
+[lib]
+name = "wcb_receipt_builder_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

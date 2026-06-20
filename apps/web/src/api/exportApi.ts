@@ -12,3 +12,7 @@ export async function getLatestExport(): Promise<{ exportRecord: ExportRecord; d
 export function exportDownloadUrl(id: string): string {
   return apiPath(`/export/${id}`);
 }
+
+export async function openExportFolder(id: string): Promise<{ ok: true; folderPath: string }> {
+  return apiRequest(apiPath(`/export/${id}/open-folder`));
+}

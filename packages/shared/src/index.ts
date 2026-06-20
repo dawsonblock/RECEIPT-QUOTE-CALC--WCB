@@ -121,6 +121,7 @@ export interface ReceiptUploadResponse {
   packet: ReceiptPacket;
   receipt: ReceiptItem;
   duplicate: boolean;
+  duplicateReceipt?: ReceiptItem;
 }
 
 export interface ExportResponse {

@@ -7,16 +7,19 @@
  * - DELETE /api/receipts/:id
  * - POST /api/receipts/reorder
  * - GET  /api/receipts/:id/file
+ * - GET  /api/export/:id/open-folder
  */
 
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import { basename } from "node:path";
+import { basename, dirname } from "node:path";
 import type { ReceiptItem, ReceiptUploadResponse } from "@wcb/shared";
 import { PacketModel } from "../packet/packetModel.js";
 import { PacketStore } from "../packet/packetStore.js";
 import { badRequest, notFound } from "../security/errorHandler.js";
 import { validateReceiptFile } from "../security/fileValidation.js";
+import { sha256Buffer } from "./fileHash.js";
 import { ReceiptStorage } from "./receiptStorage.js";
 
 interface ReceiptRouteDeps {
@@ -39,6 +42,19 @@ export function registerReceiptRoutes(app: FastifyInstance, deps: ReceiptRouteDe
 
     const buffer = await data.toBuffer();
     const validation = validateReceiptFile(data.filename, data.mimetype, buffer.length);
+    const sha256 = sha256Buffer(buffer);
+    const duplicateReceipt = packet.receipts.find((receipt) => receipt.sha256 === sha256);
+
+    if (duplicateReceipt) {
+      const response: ReceiptUploadResponse = {
+        packet,
+        receipt: duplicateReceipt,
+        duplicate: true,
+        duplicateReceipt,
+      };
+      return reply.send(response);
+    }
+
     const receipt = await deps.storage.createReceipt({
       packetId: packet.id,
       sourceBuffer: buffer,
@@ -112,5 +128,33 @@ export function registerReceiptRoutes(app: FastifyInstance, deps: ReceiptRouteDe
       .header("Content-Type", receipt.mimeType)
       .header("Content-Disposition", `inline; filename="${basename(receipt.originalFileName)}"`)
       .send(bytes);
+  });
+
+  app.get("/api/export/:id/open-folder", async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+    const packet = deps.model.current;
+    if (!packet) {
+      throw badRequest("No packet loaded.");
+    }
+
+    const record = packet.exportHistory.find((item) => item.id === request.params.id);
+    if (!record) {
+      throw notFound("Export not found.");
+    }
+
+    await readFile(record.filePath);
+    await revealInFinder(record.filePath);
+    return reply.send({ ok: true, folderPath: dirname(record.filePath) });
+  });
+}
+
+function revealInFinder(filePath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile("/usr/bin/open", ["-R", filePath], (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
   });
 }

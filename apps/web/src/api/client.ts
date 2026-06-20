@@ -14,8 +14,13 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const headers =
+    options.body instanceof FormData
+      ? options.headers
+      : { "Content-Type": "application/json", ...(options.headers ?? {}) };
+
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers ?? {}) },
+    headers,
     ...options,
   });
 

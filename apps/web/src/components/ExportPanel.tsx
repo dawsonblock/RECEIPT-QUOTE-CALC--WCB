@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ExportRecord, ReceiptPacket, ValidationIssue } from "@wcb/shared";
-import { exportDownloadUrl, generatePdf, getLatestExport } from "../api/exportApi.js";
+import { exportDownloadUrl, generatePdf, getLatestExport, openExportFolder } from "../api/exportApi.js";
 import { validatePacket } from "../utils/validation.js";
 import { ValidationWarnings } from "./ValidationWarnings.js";
 
@@ -47,6 +47,18 @@ export function ExportPanel({ packet, onExported }: ExportPanelProps) {
     }
   }
 
+  async function handleOpenFolder() {
+    if (!latest) {
+      return;
+    }
+    try {
+      const data = await openExportFolder(latest.id);
+      setMessage(`Opened export folder: ${data.folderPath}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not open export folder.");
+    }
+  }
+
   const hasErrors = issues.some((issue) => issue.level === "error");
 
   return (
@@ -64,6 +76,9 @@ export function ExportPanel({ packet, onExported }: ExportPanelProps) {
             </a>
             <button type="button" onClick={() => window.open(exportDownloadUrl(latest.id), "_blank")}>
               Open Latest PDF
+            </button>
+            <button type="button" onClick={handleOpenFolder}>
+              Open Latest Folder
             </button>
           </>
         )}

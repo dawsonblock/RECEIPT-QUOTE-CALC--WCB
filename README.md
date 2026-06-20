@@ -10,10 +10,11 @@ Local-first Mac-hosted receipt packet builder for WCB submissions. The Mac app/b
   - Receipt file storage
   - HEIC/HEIF to JPEG conversion through macOS `sips`
   - PDF packet generation through `pdf-lib`
+  - Tauri Mac shell that manages the backend process
 - **iPhone/companion**
   - React/Vite web UI
   - Served from the Mac in dev via Vite
-  - Later: packaged into the Mac shell and served locally by the Mac app
+  - Packaged into the Mac shell for local use
 - **Shared package**
   - `packages/shared` contains the domain types used by both server and web
 
@@ -23,6 +24,7 @@ Local-first Mac-hosted receipt packet builder for WCB submissions. The Mac app/b
 apps/server/       Fastify backend and PDF generator
 apps/web/          React/Vite web UI
 packages/shared/   Shared TypeScript domain types
+src-tauri/         Tauri Mac shell
 ```
 
 ## Local storage layout
@@ -67,6 +69,12 @@ pnpm dev:server
 pnpm dev:web
 ```
 
+Run the Tauri Mac shell in development:
+
+```bash
+pnpm tauri:dev
+```
+
 The web UI runs at:
 
 ```text
@@ -78,6 +86,26 @@ The API runs at:
 ```text
 http://127.0.0.1:8787
 ```
+
+When running inside the Tauri shell, the shell starts/stops the Fastify backend process automatically.
+
+## Mac app build and packaging
+
+Install the Tauri system prerequisites for macOS if they are not already present:
+
+```bash
+xcode-select --install
+```
+
+Build a distributable Mac app bundle:
+
+```bash
+pnpm tauri:build
+```
+
+Tauri writes installers/bundles under `src-tauri/target/release/bundle/`. The exact bundle type depends on the Tauri bundle configuration and available macOS tooling.
+
+Before shipping a release build, replace the placeholder `src-tauri/icons/icon.png` with real app icon assets in the required Tauri sizes.
 
 ## Typecheck and build
 
@@ -99,6 +127,20 @@ pnpm --filter @wcb/web build
 
 ```bash
 pnpm clean
+```
+
+## Tests
+
+Run all package tests:
+
+```bash
+pnpm test
+```
+
+Run only the server tests covering packet validation and PDF generation:
+
+```bash
+pnpm --filter @wcb/server test
 ```
 
 ## API overview
@@ -184,7 +226,8 @@ Current behavior:
 - Server binds to `127.0.0.1` by default.
 - The web UI shows an iPhone Access panel.
 - Enabling iPhone access generates an access code and reports a local URL.
-- Actual runtime rebind from `127.0.0.1` to `0.0.0.0` is planned for the Mac shell/Tauri phase.
+- The runtime lifecycle now safely rebinds the Fastify server from `127.0.0.1` to `0.0.0.0` after a short delay so the current API response can finish.
+- The Tauri shell manages the backend process during Mac app startup/shutdown.
 
 For local development testing, you can start the server bound to LAN with:
 
@@ -204,21 +247,21 @@ Completed:
 
 - Local JSON packet storage
 - Receipt upload and metadata editing
+- Duplicate receipt detection on upload
+- Open generated export folder from the web UI
 - PDF packet generation
 - React web UI
 - Shared TypeScript types
 - HEIC/HEIF conversion using macOS tools
-- Server and web production builds
+- Tauri Mac shell with backend lifecycle management
+- Server, web, and Rust validation
+- Automated tests for validation and PDF generation
 - Smoke-tested receipt-to-PDF flow
 
 Still planned:
 
-- Tauri Mac shell
-- Proper Mac shell management of LAN binding and iPhone access
-- Open export folder action
-- Duplicate receipt detection in the upload route
-- Automated tests for validation and PDF generation
-- Packaging instructions for a distributable Mac app
+- Replace placeholder Tauri app icon with release-quality icon assets
+- Optional notarization/signing workflow for distribution outside this Mac
 
 ## Useful environment variables
 

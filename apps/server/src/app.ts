@@ -4,7 +4,9 @@ import Fastify, { type FastifyError, type FastifyInstance, type FastifyRequest }
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import staticPlugin from "@fastify/static";
-import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { AccessCodeManager } from "./auth/accessCode.js";
 import { buildIphoneAccessStatus } from "./iphone/iphoneAccess.js";
 import { PacketModel } from "./packet/packetModel.js";
@@ -14,6 +16,7 @@ import { registerReceiptRoutes } from "./receipts/receiptRoutes.js";
 import { ReceiptStorage } from "./receipts/receiptStorage.js";
 import { badRequest } from "./security/errorHandler.js";
 import { loadServerConfig } from "./config/serverConfig.js";
+import type { IPhoneAccessController } from "./serverRuntime.js";
 
 interface AppOptions {
   config?: ReturnType<typeof loadServerConfig>;
@@ -21,6 +24,7 @@ interface AppOptions {
   store?: PacketStore;
   storage?: ReceiptStorage;
   accessCode?: AccessCodeManager;
+  serverRuntime?: IPhoneAccessController;
 }
 
 export async function createApp(options: AppOptions = {}): Promise<FastifyInstance> {
@@ -29,11 +33,26 @@ export async function createApp(options: AppOptions = {}): Promise<FastifyInstan
   const store = options.store ?? new PacketStore();
   const storage = options.storage ?? new ReceiptStorage();
   const accessCode = options.accessCode ?? new AccessCodeManager();
+  const serverRuntime = options.serverRuntime;
+  const webRoot = findExistingWebRoot();
 
   const app = Fastify({ logger: true });
 
   await app.register(cors, {
-    origin: [config.webOrigin, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const allowedOrigins = [config.webOrigin, "http://localhost:5173", "http://127.0.0.1:5173", "tauri://localhost"];
+      if (allowedOrigins.includes(origin) || origin.startsWith("tauri://")) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin is not allowed by the local Mac server."), false);
+    },
     credentials: true,
   });
   await app.register(multipart, {
@@ -127,28 +146,37 @@ export async function createApp(options: AppOptions = {}): Promise<FastifyInstan
   });
 
   app.get("/api/iphone-access", async () => {
-    const status = accessCode.status(config.iphoneAccessEnabled);
-    return buildIphoneAccessStatus(config.iphoneAccessEnabled, config.host, config.port, status.code, status.expiresAt, status.ttlSeconds);
+    const status = serverRuntime?.getStatus();
+    return status ?? buildIphoneAccessStatus(config.iphoneAccessEnabled, config.host, config.port, accessCode.status(config.iphoneAccessEnabled).code, accessCode.status(config.iphoneAccessEnabled).expiresAt, accessCode.status(config.iphoneAccessEnabled).ttlSeconds);
   });
 
   app.post("/api/iphone-access/enable", async (_request, reply) => {
-    accessCode.rotate();
-    return reply.send({ enabled: true, message: "iPhone access enabled. Restart the server on 0.0.0.0 from the Mac shell to allow LAN access." });
+    const status = serverRuntime?.scheduleIphoneAccess(true);
+    if (!status) {
+      return reply.send({ enabled: true, message: "iPhone access enabled. Restart the server on 0.0.0.0 from the Mac shell to allow LAN access." });
+    }
+    return reply.send({ ...status, message: "iPhone access enabled. The server is restarting on 0.0.0.0 for LAN access." });
   });
 
   app.post("/api/iphone-access/disable", async (_request, reply) => {
-    return reply.send({ enabled: false, message: "iPhone access disabled." });
+    const status = serverRuntime?.scheduleIphoneAccess(false);
+    if (!status) {
+      return reply.send({ enabled: false, message: "iPhone access disabled." });
+    }
+    return reply.send({ ...status, message: "iPhone access disabled. The server is restarting on 127.0.0.1." });
   });
 
-  app.register(staticPlugin, {
-    root: join(process.cwd(), "../../apps/web/dist"),
-    prefix: "/assets/",
-  });
+  if (webRoot) {
+    app.register(staticPlugin, {
+      root: join(webRoot, "assets"),
+      prefix: "/assets/",
+    });
 
-  app.get("/*", async (_request, reply) => {
-    const index = join(process.cwd(), "../../apps/web/dist/index.html");
-    return reply.type("html").sendFile(index);
-  });
+    app.get("/*", async (_request, reply) => {
+      const index = join(webRoot, "index.html");
+      return reply.type("html").sendFile(index);
+    });
+  }
 
   app.setErrorHandler((error: FastifyError, _request, reply) => {
     const statusCode = typeof error.statusCode === "number" ? error.statusCode : 500;
@@ -156,4 +184,17 @@ export async function createApp(options: AppOptions = {}): Promise<FastifyInstan
   });
 
   return app;
+}
+
+function findExistingWebRoot(): string | null {
+  const moduleDir = dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    join(moduleDir, "../../../apps/web/dist"),
+    join(moduleDir, "../../../../../apps/web/dist"),
+    join(process.cwd(), "../../apps/web/dist"),
+    join(process.cwd(), "apps/web/dist"),
+    join(process.cwd(), "dist/apps/web/dist"),
+  ];
+
+  return candidates.find((candidate) => existsSync(join(candidate, "index.html"))) ?? null;
 }
