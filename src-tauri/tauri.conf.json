@@ -26,7 +26,16 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "category": "Productivity"
+    "targets": ["dmg", "app"],
+    "category": "Productivity",
+    "resources": ["../apps/server/dist"],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null,
+      "entitlements": null
+    }
   }
 }

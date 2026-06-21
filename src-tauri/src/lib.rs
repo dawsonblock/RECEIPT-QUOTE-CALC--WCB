@@ -12,11 +12,9 @@ impl Drop for BackendProcess {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let backend = None::<BackendProcess>;
-
     tauri::Builder::default()
-        .setup(move |app| {
-            if let Some(process) = backend {
+        .setup(|app| {
+            if let Some(process) = start_backend_server() {
                 app.manage(process);
             }
             Ok(())
@@ -26,7 +24,7 @@ pub fn run() {
 }
 
 #[allow(dead_code)]
-fn start_backend_server() -> Option<Child> {
+fn start_backend_server() -> Option<BackendProcess> {
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir.join("..");
     let mut command = if cfg!(debug_assertions) {
@@ -42,5 +40,5 @@ fn start_backend_server() -> Option<Child> {
     command.current_dir(repo_root);
     command.stdout(std::process::Stdio::null());
     command.stderr(std::process::Stdio::null());
-    command.spawn().ok()
+    command.spawn().ok().map(BackendProcess)
 }
